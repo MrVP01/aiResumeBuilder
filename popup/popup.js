@@ -174,7 +174,7 @@ function updateProviderUI() {
     anthropic: 'claude-sonnet-4-20250514',
     gemini: 'gemini-1.5-pro',
     cerebras: 'llama-3.3-70b',
-    cohere: 'command-r-plus'
+    cohere: 'command-a-03-2025'
   };
 
   switch (provider) {

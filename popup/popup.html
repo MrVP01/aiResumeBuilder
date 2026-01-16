@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Resume Optimizer</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>AI Resume Optimizer</h1>
+      <p class="subtitle">Tailor your resume to any job posting</p>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="resume">Resume</button>
+      <button class="tab" data-tab="job">Job</button>
+      <button class="tab" data-tab="results">Results</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </nav>
+
+    <!-- Resume Tab -->
+    <section id="resume-tab" class="tab-content active">
+      <div class="section-header">
+        <h2>Your Resume</h2>
+        <span class="status-badge" id="resume-status">Not uploaded</span>
+      </div>
+
+      <div class="input-type-toggle">
+        <button class="toggle-btn active" data-type="latex">LaTeX</button>
+        <button class="toggle-btn" data-type="pdf">PDF</button>
+      </div>
+
+      <!-- LaTeX Input -->
+      <div id="latex-input" class="input-section">
+        <div class="upload-area" id="latex-drop-zone">
+          <div class="upload-icon">📄</div>
+          <p>Drag & drop your .tex file here</p>
+          <p class="or-text">or</p>
+          <input type="file" id="latex-file-input" accept=".tex" hidden>
+          <button class="btn btn-secondary" id="latex-file-btn">Choose .tex File</button>
+        </div>
+        <div class="textarea-container">
+          <label for="latex-textarea">Or paste your LaTeX code:</label>
+          <textarea id="latex-textarea" placeholder="\\documentclass{article}&#10;\\begin{document}&#10;...&#10;\\end{document}"></textarea>
+        </div>
+        <button class="btn btn-primary" id="save-latex-btn">Save Resume</button>
+      </div>
+
+      <!-- PDF Input -->
+      <div id="pdf-input" class="input-section hidden">
+        <div class="upload-area" id="pdf-drop-zone">
+          <div class="upload-icon">📑</div>
+          <p>Drag & drop your PDF resume here</p>
+          <p class="or-text">or</p>
+          <input type="file" id="pdf-file-input" accept=".pdf" hidden>
+          <button class="btn btn-secondary" id="pdf-file-btn">Choose PDF File</button>
+        </div>
+        <div id="pdf-preview" class="preview-area hidden">
+          <h3>Extracted Text Preview:</h3>
+          <div id="pdf-text-preview"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Job Tab -->
+    <section id="job-tab" class="tab-content">
+      <div class="section-header">
+        <h2>Job Description</h2>
+        <span class="status-badge" id="job-status">Not captured</span>
+      </div>
+
+      <div class="capture-section">
+        <p class="instructions">Select text on any webpage, then click the button below to capture it.</p>
+        <button class="btn btn-primary btn-large" id="capture-btn">
+          <span class="btn-icon">✂️</span>
+          Capture Selected Text
+        </button>
+      </div>
+
+      <div class="textarea-container">
+        <label for="job-textarea">Or paste job description manually:</label>
+        <textarea id="job-textarea" placeholder="Paste the job description here..."></textarea>
+      </div>
+
+      <div id="job-preview" class="preview-area hidden">
+        <h3>Captured Job Description:</h3>
+        <div id="job-text-preview"></div>
+        <button class="btn btn-secondary btn-small" id="clear-job-btn">Clear</button>
+      </div>
+
+      <button class="btn btn-primary btn-large" id="optimize-btn" disabled>
+        <span class="btn-icon">✨</span>
+        Optimize My Resume
+      </button>
+    </section>
+
+    <!-- Results Tab -->
+    <section id="results-tab" class="tab-content">
+      <div class="section-header">
+        <h2>Optimization Results</h2>
+      </div>
+
+      <div id="results-loading" class="loading-state hidden">
+        <div class="spinner"></div>
+        <p>Analyzing your resume against the job posting...</p>
+        <p class="loading-tip" id="loading-tip"></p>
+      </div>
+
+      <div id="results-empty" class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>No results yet. Upload your resume and capture a job description to get started.</p>
+      </div>
+
+      <div id="results-content" class="hidden">
+        <!-- Summary Section -->
+        <div class="results-section">
+          <h3>Match Summary</h3>
+          <div class="match-score">
+            <div class="score-circle">
+              <span id="match-percentage">0</span>%
+            </div>
+            <p>Keyword Match</p>
+          </div>
+        </div>
+
+        <!-- Suggestions Section -->
+        <div class="results-section">
+          <h3>Suggested Improvements</h3>
+          <div id="suggestions-list" class="suggestions-list"></div>
+        </div>
+
+        <!-- Updated LaTeX Section -->
+        <div class="results-section">
+          <h3>Updated LaTeX Code</h3>
+          <div class="latex-output">
+            <textarea id="updated-latex" readonly></textarea>
+            <div class="output-actions">
+              <button class="btn btn-secondary" id="copy-latex-btn">
+                <span class="btn-icon">📋</span> Copy LaTeX
+              </button>
+              <button class="btn btn-secondary" id="download-tex-btn">
+                <span class="btn-icon">⬇️</span> Download .tex
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PDF Export Section -->
+        <div class="results-section">
+          <h3>Export</h3>
+          <button class="btn btn-primary btn-large" id="generate-pdf-btn">
+            <span class="btn-icon">📄</span>
+            Generate & Download PDF
+          </button>
+          <p class="help-text">Note: For best results, compile the LaTeX in Overleaf</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings Tab -->
+    <section id="settings-tab" class="tab-content">
+      <div class="section-header">
+        <h2>Settings</h2>
+      </div>
+
+      <div class="settings-section">
+        <h3>AI Provider</h3>
+        <div class="provider-select">
+          <label class="radio-label">
+            <input type="radio" name="ai-provider" value="openai" checked>
+            <span class="radio-custom"></span>
+            OpenAI (GPT-4)
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="ai-provider" value="anthropic">
+            <span class="radio-custom"></span>
+            Anthropic (Claude)
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="ai-provider" value="gemini">
+            <span class="radio-custom"></span>
+            Google (Gemini)
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="ai-provider" value="cerebras">
+            <span class="radio-custom"></span>
+            Cerebras
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="ai-provider" value="cohere">
+            <span class="radio-custom"></span>
+            Cohere
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-section" id="openai-settings">
+        <h3>OpenAI API Key</h3>
+        <div class="input-group">
+          <input type="password" id="openai-key" placeholder="sk-...">
+          <button class="btn btn-icon" id="toggle-openai-key" title="Show/hide">👁️</button>
+        </div>
+        <p class="help-text">Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a></p>
+      </div>
+
+      <div class="settings-section hidden" id="anthropic-settings">
+        <h3>Anthropic API Key</h3>
+        <div class="input-group">
+          <input type="password" id="anthropic-key" placeholder="sk-ant-...">
+          <button class="btn btn-icon" id="toggle-anthropic-key" title="Show/hide">👁️</button>
+        </div>
+        <p class="help-text">Get your API key from <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a></p>
+      </div>
+
+      <div class="settings-section hidden" id="gemini-settings">
+        <h3>Google Gemini API Key</h3>
+        <div class="input-group">
+          <input type="password" id="gemini-key" placeholder="AIza...">
+          <button class="btn btn-icon" id="toggle-gemini-key" title="Show/hide">👁️</button>
+        </div>
+        <p class="help-text">Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></p>
+      </div>
+
+      <div class="settings-section hidden" id="cerebras-settings">
+        <h3>Cerebras API Key</h3>
+        <div class="input-group">
+          <input type="password" id="cerebras-key" placeholder="csk-...">
+          <button class="btn btn-icon" id="toggle-cerebras-key" title="Show/hide">👁️</button>
+        </div>
+        <p class="help-text">Get your API key from <a href="https://cloud.cerebras.ai/" target="_blank">Cerebras Cloud</a></p>
+      </div>
+
+      <div class="settings-section hidden" id="cohere-settings">
+        <h3>Cohere API Key</h3>
+        <div class="input-group">
+          <input type="password" id="cohere-key" placeholder="...">
+          <button class="btn btn-icon" id="toggle-cohere-key" title="Show/hide">👁️</button>
+        </div>
+        <p class="help-text">Get your API key from <a href="https://dashboard.cohere.com/api-keys" target="_blank">Cohere Dashboard</a></p>
+      </div>
+
+      <div class="settings-section">
+        <h3>Model Selection</h3>
+        <select id="model-select">
+          <optgroup label="OpenAI" id="openai-models">
+            <option value="gpt-4o">GPT-4o (Recommended)</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Faster)</option>
+          </optgroup>
+          <optgroup label="Anthropic" id="anthropic-models" class="hidden">
+            <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (Recommended)</option>
+            <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+            <option value="claude-3-haiku-20240307">Claude 3 Haiku (Faster)</option>
+          </optgroup>
+          <optgroup label="Google Gemini" id="gemini-models" class="hidden">
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Recommended)</option>
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Faster)</option>
+            <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</option>
+          </optgroup>
+          <optgroup label="Cerebras" id="cerebras-models" class="hidden">
+            <option value="llama-3.3-70b">Llama 3.3 70B (Recommended)</option>
+            <option value="llama-3.1-8b">Llama 3.1 8B (Faster)</option>
+          </optgroup>
+          <optgroup label="Cohere" id="cohere-models" class="hidden">
+            <option value="command-r-plus">Command R+ (Recommended)</option>
+            <option value="command-r">Command R</option>
+            <option value="command">Command (Faster)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" id="save-settings-btn">Save Settings</button>
+      <div id="settings-status" class="status-message hidden"></div>
+    </section>
+  </div>
+
+  <script src="../lib/pdf-parser.js"></script>
+  <script src="../lib/ai-service.js"></script>
+  <script src="../lib/latex-processor.js"></script>
+  <script src="../lib/pdf-generator.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
